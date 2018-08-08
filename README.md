@@ -2,7 +2,7 @@
 Countdown or countup for events
 
 ## Screenshots
-[[PLACEHOLDER]]
+![screenshot](https://github.com/eouia/MMM-CountEvents/blob/master/screenshot.png?raw=true)
 
 
 ## Installation
@@ -58,6 +58,7 @@ git clone https://github.com/eouia/MMM-CountEvents.git
 ```
 
 ### Screenshot example
+![screenshot](https://github.com/eouia/MMM-CountEvents/blob/master/screenshot.png?raw=true)
 ```javascript
 {
   module: "MMM-CountEvents",
