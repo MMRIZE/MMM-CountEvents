@@ -7,7 +7,8 @@ const eventFormat = {
   absolute:false,
   ignore:null,
   className: "",
-	output: "D -%RESULT%"
+	output: "D -%RESULT%",
+	group: "default"
 }
 
 Module.register("MMM-CountEvents", {
@@ -17,6 +18,7 @@ Module.register("MMM-CountEvents", {
     locale: null,
     template: "<p class=\"title\">%TITLE%</p><p class=\"output\">%OUTPUT%</p>",
     events:[],
+		groupOrder:[],
   },
 
   getScripts: function() {
@@ -33,15 +35,27 @@ Module.register("MMM-CountEvents", {
     } else {
       this.locale = this.config.locale
     }
+		this.groupIndex = 0
   },
 
   notificationReceived: function(noti, payload, sender) {
     switch(noti) {
       case "DOM_OBJECTS_CREATED":
+				this.rotateGroup()
         this.updateView()
         break
     }
   },
+
+	rotateGroup: function() {
+		if (!this.config.groupOrder) return
+		this.groupIndex++
+		if (this.groupIndex >= this.config.groupOrder.length) this.groupIndex = 0
+
+		setTimeout(()=>{
+			this.rotateGroup()
+		}, this.config.groupInterval)
+	},
 
   updateView: function() {
     this.updateDom()
@@ -64,6 +78,10 @@ Module.register("MMM-CountEvents", {
 
   format: function(ev, wrapper) {
     ev = Object.assign({}, eventFormat, ev)
+		if (ev.group !== this.config.groupOrder[this.groupIndex]) {
+			if (this.config.groupOrder.length > 0) return
+		}
+		console.log("!")
     var now = moment()
     var thisYear = now.format("YYYY")
 
@@ -109,7 +127,9 @@ Module.register("MMM-CountEvents", {
 
     var e = document.createElement("div")
     e.id = "COUNTEVENTS_ITEM"
-    e.className = "event " + ev.className
+		e.className = "event"
+		if (ev.className) e.classList.add(ev.className)
+		if (ev.group) e.classList.add(ev.group)
     e.innerHTML = this.config.template.replace("%TITLE%", ev.title).replace("%OUTPUT%", ev.output.replace("%RESULT%", output))
     if (e !== null) {
       wrapper.appendChild(e)
