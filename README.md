@@ -33,6 +33,8 @@ git clone https://github.com/eouia/MMM-CountEvents.git
   module: "MMM-CountEvents",
   position: "top_right",
   config: {
+    groupOrder: [], // When it set, the group of event which has same group name will be displayed and be rotated to others by groupInterval
+    groupInterval: 1000*5,
     refreshInterval:1000*1,
     locale: null, //related with `humanize` (if omitted or null, MM default locale will be used.)
     template: "<p class=\"title\">%TITLE%</p><p class=\"output\">%OUTPUT%</p>",
@@ -41,6 +43,7 @@ git clone https://github.com/eouia/MMM-CountEvents.git
     //%OUTPUT% : will be replaced by event.output
     events: [
       {
+        group: "default",
         title: "Travel to Paris",
         targetTime: "21 Nov 2018", // See the time format section.
       	yearlyRepeat: false, // if this event should be refreshed yearly, set this to `true`. targetTime will be replaced the closest next date of this year or the next year.
@@ -146,6 +149,31 @@ git clone https://github.com/eouia/MMM-CountEvents.git
   }
 },
 ```
+
+### Use Group
+You can assign event group to each event.
+```js
+events: [
+  {
+    group: "Birthday",
+    title: "My Birthday",
+    targetTime: "1974-08-19",
+  },
+  ...
+],
+```
+Then, you can show events by group with this configuration.
+
+```js
+config: {
+  groupOrder: ["Birthday", "Business"],
+  groupInterval: 1000*5,
+  refreshInterval:1000*1,
+  ...
+```
+
+If you don't want using group, just set `groupOrder:[]`.
+
 
 ### Time format
 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) and [RFC 2822](https://tools.ietf.org/html/rfc2822#section-3.3) available.

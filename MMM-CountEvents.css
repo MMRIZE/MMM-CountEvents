@@ -20,3 +20,18 @@
 #COUNTEVENTS .special .title{
   color:#FF0;
 }
+
+
+#COUNTEVENTS_ITEM.hide {
+  display:none;
+}
+
+#COUNTEVENTS.fadeIn {
+  opacity: 1;
+  transition: opacity 1s linear;
+}
+
+#COUNTEVENTS.fadeOut {
+  opacity: 0;
+  transition: opacity 1s linear;
+}
