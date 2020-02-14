@@ -179,9 +179,9 @@ You can set to display event by day condition.
 - **`ignore: null`** : Always display event
 - **`ignore: "before"`** : Hide event before `targetTime`
 - **`ignore: "after"`** : Hide event after `targetTime`
-- **`ignore: [7, 1]`** : Hide event before 7 days of `targetTime` and after 1 day of `targetTime`  
-- **`ignore: [3, null]`** : Hide event before 3 days of `targetTime`
-- **`ignore: [null, 5]`** : Hide event after 5 days of `targetTime` 
+- **`ignore: [7, 1]`** : Hide event before 7 days and after 1 days from `targetTime`
+- **`ignore: [3, null]`** : Hide event before 3 days from `targetTime`
+- **`ignore: [null, 5]`** : Hide event after 5 days from `targetTime` 
 
 
 ### Time format
