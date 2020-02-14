@@ -81,7 +81,6 @@ Module.register("MMM-CountEvents", {
 		if (ev.group !== this.config.groupOrder[this.groupIndex]) {
 			if (this.config.groupOrder.length > 0) return
 		}
-		console.log("!")
     var now = moment()
     var thisYear = now.format("YYYY")
 
@@ -104,14 +103,15 @@ Module.register("MMM-CountEvents", {
       nextT = t.locale(this.locale)
     }
 
+		var valid = [null, null]
+		if (ev.ignore == "before" && now.isBefore(nextT)) return
+		if (ev.ignore == "after" && now.isAfter(nextT)) return
+		if (Array.isArray(ev.ignore) && ev.ignore.length == 2) valid = [ev.ignore[0], ev.ignore[1]]
+		var validStart = (valid[0] !== null ) ? moment(nextT).subtract(valid[0], "day"): false
+		var validEnd = (valid[1] !== null ) ? moment(nextT).add(valid[1], "day") : false
 
-    if (ev.ignore == "before" && now.isBefore(nextT)) {
-      return
-    }
-    if (ev.ignore == "after" && now.isAfter(nextT)) {
-      return
-    }
-
+		if (validStart && now.isBefore(validStart)) return
+		if (validEnd && now.isAfter(validEnd)) return
 
     var duration = moment.duration(nextT.diff(now))
     var output = ""

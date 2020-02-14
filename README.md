@@ -51,7 +51,7 @@ git clone https://github.com/eouia/MMM-CountEvents.git
         //but if you set `humanize` to true, `unit` will be ignored.
       	humanize:false, //If set as `true`, %RESULT% will be humanized. (e.g "a year ago")
         absolute:false, //If set as `false`, remain duration will be `plus number`, past duration will be `minus number`. If set as `true`, all duration will be `plus number`
-        ignore:null, //Available [null, "before", "after"]. This event will not be displayed `before|after` targetTime
+        ignore:null, //See the section below.
         className: "", //You can assign class name to this event for beautifying with CSS.
       	output: "D -%RESULT%", //You can modify output text. %RESULT% will be result of countdown/up calculation with above options.
       },
@@ -173,6 +173,15 @@ config: {
 ```
 
 If you don't want using group, just set `groupOrder:[]`.
+
+### Ignore displaying
+You can set to display event by day condition.
+- **`ignore: null`** : Always display event
+- **`ignore: "before"`** : Hide event before `targetTime`
+- **`ignore: "after"`** : Hide event after `targetTime`
+- **`ignore: [7, 1]`** : Hide event before 7 days of `targetTime` and after 1 day of `targetTime`  
+- **`ignore: [3, null]`** : Hide event before 3 days of `targetTime`
+- **`ignore: [null, 5]`** : Hide event after 5 days of `targetTime` 
 
 
 ### Time format
