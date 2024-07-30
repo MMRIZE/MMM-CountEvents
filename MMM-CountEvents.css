@@ -35,3 +35,15 @@
   opacity: 0;
   transition: opacity 1s linear;
 }
+
+
+
+
+
+/* ... */
+
+mm-time.number-only {
+  :not(.integer) {
+    display: none;
+  }
+}

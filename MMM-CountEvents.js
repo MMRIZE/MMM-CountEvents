@@ -1,138 +1,119 @@
 const eventFormat = {
-	title: "EVENT TITLE",
-	targetTime: "20200101",
-	yearlyRepeat: false,
-	unit: "days",
-	humanize:false,
+  title: "EVENT TITLE",
+  targetTime: "2030-01-01",
+  locale: "en",
+  repeat: false, // "yearly", "monthly", "weekly", "daily", "hourly"
+  ignoreBefore: null,
+  ignoreAfter: 1000 * 60 * 60 * 24 * 7, 
+  humanize:false,
   absolute:false,
-  ignore:null,
+  ignore:null, 
   className: "",
-	output: "D -%RESULT%",
-	group: "default"
+  output: `<dl><dt class="title">%TITLE%</dt><dd class="output">%RESULT%</dd></dl>`,
+  refresh: null,
 }
 
 Module.register("MMM-CountEvents", {
 
   defaults: {
-    refreshInterval:1000*1,
-    locale: null,
-    template: "<p class=\"title\">%TITLE%</p><p class=\"output\">%OUTPUT%</p>",
-    events:[],
-		groupOrder:[],
-  },
-
-  getScripts: function() {
-    return ["moment.js"]
+    refresh: null,
+    events:[
+     
+    ],
   },
 
   getStyles: function() {
     return ["MMM-CountEvents.css"]
   },
 
-  start: function() {
-    if (this.config.locale == null || this.config.locale == "") {
-      this.locale = moment.locale()
-    } else {
-      this.locale = this.config.locale
-    }
-		this.groupIndex = 0
-  },
-
-  notificationReceived: function(noti, payload, sender) {
-    switch(noti) {
-      case "DOM_OBJECTS_CREATED":
-				this.rotateGroup()
-        this.updateView()
-        break
-    }
-  },
-
-	rotateGroup: function() {
-		if (!this.config.groupOrder) return
-		this.groupIndex++
-		if (this.groupIndex >= this.config.groupOrder.length) this.groupIndex = 0
-
-		setTimeout(()=>{
-			this.rotateGroup()
-		}, this.config.groupInterval)
-	},
-
-  updateView: function() {
-    this.updateDom()
-    var timer = setTimeout(()=>{
-      this.updateView()
-    }, this.config.refreshInterval)
-  },
-
   getDom: function() {
-    var wrapper = document.createElement("div")
-    wrapper.id = "COUNTEVENTS"
-    if (this.config.events.length > 0) {
-      for (var i in this.config.events) {
-        var event = this.config.events[i]
-        this.format(event, wrapper)
-      }
-    }
+    const wrapper = document.createElement("div")
+    this.config.events.forEach(event => {
+      const mmt = this.mmTime(event)
+      if (!mmt) return
+      const eventWrapper = document.createElement("div")
+      eventWrapper.innerHTML = eventFormat.output
+        .replace(/%TITLE%/g, event.title)
+        .replace(/%RESULT%/g, mmt.outerHTML)
+      wrapper.appendChild(eventWrapper)
+    })
     return wrapper
   },
 
-  format: function(ev, wrapper) {
-    ev = Object.assign({}, eventFormat, ev)
-		if (ev.group !== this.config.groupOrder[this.groupIndex]) {
-			if (this.config.groupOrder.length > 0) return
-		}
-    var now = moment()
-    var thisYear = now.format("YYYY")
+  mmTime: function(event) {
+    const repeated = (event) => {
+      const t = new Date(event.targetTime)
+      const n = new Date(Date.now())
+      const tMonth = t.getMonth()
+      const tDate = t.getDate()
+      const tHour = t.getHours()
+      const tMinute = t.getMinutes()
+      const tSecond = t.getSeconds()
+      const tMilisecond = t.getMilliseconds()
+      const nYear = n.getFullYear()
+      const nMonth = n.getMonth()
+      const nDate = n.getDate()
+      const nHour = n.getHours()
 
-    var t = moment(ev.targetTime)
-    var tRaw = t.format("x")
-    var tYear = t.format("YYYY")
-    var tMonth = t.format("MM")
-    var tDate = t.format("DD")
-    var tHour = t.format("HH")
-    var tMinute = t.format("mm")
-    var tSecond = t.format("ss")
-
-    var nextT = null
-    if (ev.yearlyRepeat) {
-      nextT = moment(thisYear.concat(tMonth, tDate, "T", tHour, tMinute, tSecond)).locale(this.locale)
-      if (moment().isAfter(nextT)) {
-        nextT.add(1, "year")
+      let nextT = new Date(t)
+      switch (event.repeat) {
+        case "yearly":
+          nextT = new Date(nYear, tMonth, tDate, tHour, tMinute, tSecond, tMilisecond)
+          if (nextT.valueOf() < n.valueOf()) nextT.setFullYear(nYear + 1)
+          break
+        case "monthly":
+          nextT = new Date(nYear, nMonth, tDate, tHour, tMinute, tSecond, tMilisecond)
+          if (nextT.valueOf() < n.valueOf()) nextT.setMonth(nMonth + 1)
+          if (nextT.getDate() !== tDate) nextT.setDate(0)
+          break
+        case "weekly":
+          nextT = new Date(nYear, nMonth, nDate, tHour, tMinute, tSecond, tMilisecond)
+          const dayDiff = t.getDay() - nextT.getDay()
+          if (dayDiff === 0 && n.valueOf() > nextT.valueOf()) nextT.setDate(nDate + 7)
+          if (dayDiff !== 0) nextT.setDate(nDate + ((dayDiff + 7) % 7))
+          break
+        case "daily":
+          nextT = new Date(nYear, nMonth, nDate, tHour, tMinute, tSecond, tMilisecond)
+          if (nextT.valueOf() < n.valueOf()) nextT.setDate(nDate + 1)
+          break
+        case "hourly":
+          nextT = new Date(nYear, nMonth, nDate, nHour, tMinute, tSecond, tMilisecond)
+          if (nextT.valueOf() < n.valueOf()) nextT.setHours(nHour + 1)
+          break
+        default: break
       }
-    } else {
-      nextT = t.locale(this.locale)
+      return nextT
     }
 
-		var valid = [null, null]
-		if (ev.ignore == "before" && now.isBefore(nextT)) return
-		if (ev.ignore == "after" && now.isAfter(nextT)) return
-		if (Array.isArray(ev.ignore) && ev.ignore.length == 2) valid = [ev.ignore[0], ev.ignore[1]]
-		var validStart = (valid[0] !== null ) ? moment(nextT).subtract(valid[0], "day"): false
-		var validEnd = (valid[1] !== null ) ? moment(nextT).add(valid[1], "day") : false
-
-		if (validStart && now.isBefore(validStart)) return
-		if (validEnd && now.isAfter(validEnd)) return
-
-    var duration = moment.duration(nextT.diff(now))
-    var output = ""
-    if (ev.humanize) {
-      output = nextT.fromNow()
-    } else {
-      output = Math.floor(duration.as(ev.unit))
-      if (ev.absolute) {
-        output = Math.abs(output)
-      }
+    const targetTime = new Date(repeated(event))
+    console.log({targetTime}, targetTime.valueOf())
+    console.log('ignoreBefore', targetTime.valueOf() - +event.ignoreBefore, new Date(targetTime.valueOf() - +event.ignoreBefore), Date.now())
+    console.log('ignoreAfter', targetTime.valueOf() + +event.ignoreAfter, new Date(targetTime.valueOf() + +event.ignoreAfter), Date.now())
+    console.log(!event.ignoreBefore, targetTime.valueOf() - +event.ignoreBefore > Date.now())
+    if (event.ignoreBefore, targetTime.valueOf() - +event.ignoreBefore > Date.now()) {
+      console.log("1")
+      return false
     }
-
-
-    var e = document.createElement("div")
-    e.id = "COUNTEVENTS_ITEM"
-		e.className = "event"
-		if (ev.className) e.classList.add(ev.className)
-		if (ev.group) e.classList.add(ev.group)
-    e.innerHTML = this.config.template.replace("%TITLE%", ev.title).replace("%OUTPUT%", ev.output.replace("%RESULT%", output))
-    if (e !== null) {
-      wrapper.appendChild(e)
+    if (event.ignoreAfter && targetTime.valueOf() + +event.ignoreAfter < Date.now()) {
+      console.log("2")
+      return false
     }
-  }
+    const mmt = document.createElement("mm-time")
+    mmt.relative = true
+    mmt.locale = event.locale
+    mmt.time = targetTime
+    mmt.dataset.numeric = (event.numericAlways) ? 'always' : 'auto'
+    if (event.unit) mmt.relativeUnit = event.unit
+    if (event.reverse) mmt.relativeReverse = event.reverse
+    if (event.refresh && event.refresh >= 1000) mmt.refresh = event.refresh
+    if (event.decouple) mmt.decouple = event.decouple
+    if (event.numberOnly) mmt.classList.add("number-only")
+    if (event.className) mmt.classList.add(event.className)
+    if (typeof event?.manipulate === "function") {
+      return event.manipulate(mmt)
+    }
+    return mmt 
+  },
+
+
 })
