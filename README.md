@@ -6,10 +6,26 @@ Countdown or countup for events
 
 
 ## Installation
-```shell
+```sh
 cd ~/MagicMirror/modules
-git clone https://github.com/eouia/MMM-CountEvents.git
+git clone https://github.com/MMRIZE/MMM-CountEvents
+cd MMM-CountEvents
+npm install
 ```
+
+This module needs `MMM-CustomElementTime` module also. It would be installed by execution of `postinstall.sh`. Usually This script will be run automatically by `npm install` but, when that is not executed properly, do it by manual.
+```sh
+sh ./postinstall.sh
+# OR
+./postinstall.sh
+```
+
+But when you have still a problem, you can install that module also by manual.
+```sh
+cd ~/MagicMirror/modules
+git clone https://github.com/MMRIZE/MMM-CustomElementTime
+```
+
 
 ## Configuration
 ### Simple Version
@@ -21,7 +37,7 @@ git clone https://github.com/eouia/MMM-CountEvents.git
     events: [
       {
         title: "Travel to Paris",
-        targetTime: "21 Nov 2018",
+        targetTime: "21 Nov 2024",
       },
     ]
   }

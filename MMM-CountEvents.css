@@ -42,8 +42,20 @@
 
 /* ... */
 
+.CE {
+  list-style-type: none;
+}
+
 mm-time.number-only {
   :not(.integer) {
     display: none;
   }
+}
+
+mm-time.number-only.number-sign.past::before {
+  content: "+";
+}
+
+mm-time.number-only.number-sign.future::before {
+  content: "-";
 }

@@ -1,43 +1,58 @@
-const eventFormat = {
-  title: "EVENT TITLE",
-  targetTime: "2030-01-01",
-  locale: "en",
-  repeat: false, // "yearly", "monthly", "weekly", "daily", "hourly"
-  ignoreBefore: null,
-  ignoreAfter: 1000 * 60 * 60 * 24 * 7, 
-  humanize:false,
-  absolute:false,
-  ignore:null, 
-  className: "",
-  output: `<dl><dt class="title">%TITLE%</dt><dd class="output">%RESULT%</dd></dl>`,
-  refresh: null,
-}
-
 Module.register("MMM-CountEvents", {
 
   defaults: {
-    refresh: null,
-    events:[
-     
-    ],
+    refresh: 1000 * 60,
+    title: "nonamed",
+    locale: null,
+    unit: "auto",
+    repeat: false,
+    ignoreBefore: false,
+    ignoreAfter: false,
+    className: "default",
+    output: `<dl><dt><span class="title"></span></dt><dd class="output"><span class="output"></span></dd></dl>`,
+    numericAlways: false,
+    reverse: false,
+    numberOnly: false,
+    numberSign: false,
+    manipulate: null,
+    useQuarter: false,
+    onPassed: null,
+
+    events:[],
   },
 
   getStyles: function() {
     return ["MMM-CountEvents.css"]
   },
 
+  start: function() {
+    this.config.identifier = this.config?.identifier ?? 'CE_' + this.identifier
+
+  },
+
   getDom: function() {
-    const wrapper = document.createElement("div")
-    this.config.events.forEach(event => {
+    const wrapper = document.createElement("ul")
+    wrapper.classList.add('CE')
+    wrapper.id = this.config.identifier
+    this.config.events.forEach(ev => {
+      const event = this.regularize(ev)
+      console.log(event)
       const mmt = this.mmTime(event)
       if (!mmt) return
-      const eventWrapper = document.createElement("div")
-      eventWrapper.innerHTML = eventFormat.output
-        .replace(/%TITLE%/g, event.title)
-        .replace(/%RESULT%/g, mmt.outerHTML)
+
+      const eventWrapper = document.createElement("li")
+      eventWrapper.innerHTML = event.output
+      eventWrapper.querySelector(".title").textContent = event.title
+      eventWrapper.querySelector(".output").appendChild(mmt)
       wrapper.appendChild(eventWrapper)
     })
     return wrapper
+  },
+
+  regularize: function(event) {
+    const { events, identifier, ...rest } = this.config
+    console.log(rest, event)
+    return { ...rest, ...event }
   },
 
   mmTime: function(event) {
@@ -86,29 +101,33 @@ Module.register("MMM-CountEvents", {
     }
 
     const targetTime = new Date(repeated(event))
-    console.log({targetTime}, targetTime.valueOf())
-    console.log('ignoreBefore', targetTime.valueOf() - +event.ignoreBefore, new Date(targetTime.valueOf() - +event.ignoreBefore), Date.now())
-    console.log('ignoreAfter', targetTime.valueOf() + +event.ignoreAfter, new Date(targetTime.valueOf() + +event.ignoreAfter), Date.now())
-    console.log(!event.ignoreBefore, targetTime.valueOf() - +event.ignoreBefore > Date.now())
-    if (event.ignoreBefore, targetTime.valueOf() - +event.ignoreBefore > Date.now()) {
-      console.log("1")
-      return false
-    }
-    if (event.ignoreAfter && targetTime.valueOf() + +event.ignoreAfter < Date.now()) {
-      console.log("2")
-      return false
-    }
+    const now = Date.now()
+    if (event.ignoreBefore && targetTime.valueOf() - +event.ignoreBefore > now) return false
+    if (event.ignoreAfter && targetTime.valueOf() + +event.ignoreAfter < now) return false
+
     const mmt = document.createElement("mm-time")
     mmt.relative = true
-    mmt.locale = event.locale
+    mmt.locale = event?.locale ?? this.config?.locale ?? config?.locale ?? "en"
     mmt.time = targetTime
+    mmt.decouple = true
     mmt.dataset.numeric = (event.numericAlways) ? 'always' : 'auto'
     if (event.unit) mmt.relativeUnit = event.unit
     if (event.reverse) mmt.relativeReverse = event.reverse
     if (event.refresh && event.refresh >= 1000) mmt.refresh = event.refresh
-    if (event.decouple) mmt.decouple = event.decouple
+    //if (event.decouple) mmt.decouple = event.decouple
+    if (event.useQuarter) mmt.relativeQuarter = true
     if (event.numberOnly) mmt.classList.add("number-only")
+    if (event.numberSign) mmt.classList.add("number-sign")
+    mmt.classList.add((targetTime.valueOf() < now) ? "past" : ((targetTime.valueOf() > now) ? "future" : "now"))
     if (event.className) mmt.classList.add(event.className)
+    mmt.onPassed = (ev) => {
+      let ret = null
+      if (typeof event?.onPassed === "function") {
+        ret = event.onPassed(ev)
+      }
+      if (event.repeat) mmt.time = new Date(repeated(event))
+      return ret
+    } 
     if (typeof event?.manipulate === "function") {
       return event.manipulate(mmt)
     }
