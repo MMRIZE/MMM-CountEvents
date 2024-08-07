@@ -1,0 +1,25 @@
+{
+  "name": "mmm-countevents",
+  "version": "2.0.0",
+  "description": "MagicMirror module which can count down or count up for events",
+  "main": "MMM-CountEvents.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "./postinstall.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MMRIZE/MMM-CountEvents.git"
+  },
+  "keywords": [
+    "MagicMirror",
+    "count",
+    "CustomElementTime"
+  ],
+  "author": "eouia0819@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MMRIZE/MMM-CountEvents/issues"
+  },
+  "homepage": "https://github.com/MMRIZE/MMM-CountEvents#readme"
+}

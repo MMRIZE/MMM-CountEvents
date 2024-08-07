@@ -1,37 +1,28 @@
-#COUNTEVENTS p {
-  padding:0;
-  margin:0;
-  line-height:120%;
+.CE {
+  list-style-type: none;
 }
 
-#COUNTEVENTS .event {
-  margin:10px;
+.CE mm-time.number-only {
+  :not(.integer) {
+    display: none;
+  }
 }
 
-
-#COUNTEVENTS .title {
-  color:#FFF;
-}
-#COUNTEVENTS .output {
-  color:#999;
-  font-size:80%;
+.CE mm-time.number-only.number-sign.past::before {
+  content: "+";
 }
 
-#COUNTEVENTS .special .title{
-  color:#FF0;
+.CE mm-time.number-only.number-sign.future::before {
+  content: "-";
 }
 
-
-#COUNTEVENTS_ITEM.hide {
-  display:none;
+.CE .mm-time-parts.integer {
+  font-weight: bold;
+  color: white;
 }
 
-#COUNTEVENTS.fadeIn {
-  opacity: 1;
-  transition: opacity 1s linear;
-}
-
-#COUNTEVENTS.fadeOut {
-  opacity: 0;
-  transition: opacity 1s linear;
+.CE .title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: white;
 }
