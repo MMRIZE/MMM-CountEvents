@@ -3,13 +3,14 @@ Module.register("MMM-CountEvents", {
   defaults: {
     refresh: 1000 * 60,
     title: "nonamed",
+    targetTime: "2025-01-01",
     locale: null,
     unit: "auto",
     repeat: false,
     ignoreBefore: false,
     ignoreAfter: false,
     className: "default",
-    output: `<dl><dt><span class="title"></span></dt><dd class="output"><span class="output"></span></dd></dl>`,
+    output: `<dl><dt class="title"></dt><dd class="output"></dd></dl>`,
     numericAlways: false,
     reverse: false,
     numberOnly: false,
@@ -17,6 +18,7 @@ Module.register("MMM-CountEvents", {
     manipulate: null,
     useQuarter: false,
     onPassed: null,
+    onUpdated: null,
 
     events:[],
   },
@@ -27,7 +29,7 @@ Module.register("MMM-CountEvents", {
 
   start: function() {
     this.config.identifier = this.config?.identifier ?? 'CE_' + this.identifier
-
+    this.config.locale = this.config?.locale ?? config?.locale ?? "en"
   },
 
   getDom: function() {
@@ -36,13 +38,13 @@ Module.register("MMM-CountEvents", {
     wrapper.id = this.config.identifier
     this.config.events.forEach(ev => {
       const event = this.regularize(ev)
-      console.log(event)
       const mmt = this.mmTime(event)
       if (!mmt) return
 
       const eventWrapper = document.createElement("li")
+      if (event.className) eventWrapper.classList.add(event.className)
       eventWrapper.innerHTML = event.output
-      eventWrapper.querySelector(".title").textContent = event.title
+      eventWrapper.querySelector(".title").innerHTML = event.title
       eventWrapper.querySelector(".output").appendChild(mmt)
       wrapper.appendChild(eventWrapper)
     })
@@ -51,7 +53,6 @@ Module.register("MMM-CountEvents", {
 
   regularize: function(event) {
     const { events, identifier, ...rest } = this.config
-    console.log(rest, event)
     return { ...rest, ...event }
   },
 
@@ -114,7 +115,6 @@ Module.register("MMM-CountEvents", {
     if (event.unit) mmt.relativeUnit = event.unit
     if (event.reverse) mmt.relativeReverse = event.reverse
     if (event.refresh && event.refresh >= 1000) mmt.refresh = event.refresh
-    //if (event.decouple) mmt.decouple = event.decouple
     if (event.useQuarter) mmt.relativeQuarter = true
     if (event.numberOnly) mmt.classList.add("number-only")
     if (event.numberSign) mmt.classList.add("number-sign")
@@ -123,16 +123,21 @@ Module.register("MMM-CountEvents", {
     mmt.onPassed = (ev) => {
       let ret = null
       if (typeof event?.onPassed === "function") {
-        ret = event.onPassed(ev)
+        ret = event.onPassed(event, mmt)
       }
       if (event.repeat) mmt.time = new Date(repeated(event))
       return ret
-    } 
+    }
+    mmt.onUpdated = (ev) => {
+      let ret = null
+      if (typeof event?.onUpdated === "function") {
+        ret = event.onUpdated(event, mmt)
+      }
+      return ret
+    }
     if (typeof event?.manipulate === "function") {
       return event.manipulate(mmt)
     }
     return mmt 
   },
-
-
 })
