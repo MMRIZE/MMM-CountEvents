@@ -25,6 +25,9 @@ npm install
 
 This module needs `MMM-CustomElementTime` module also. It would be installed by execution of `postinstall.sh`. Usually This script will be run automatically by `npm install` but, when that is not executed properly, do it by manual.
 ```sh
+# In some environments, you may need to allow permission
+chmod 755 ./postinstall.sh
+
 sh ./postinstall.sh
 # OR
 ./postinstall.sh
